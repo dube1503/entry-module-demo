@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/entry-module-demo/static/css/main.8015997c.css",
+    "main.js": "/entry-module-demo/static/js/main.6bb5156d.js",
+    "index.html": "/entry-module-demo/index.html",
+    "main.8015997c.css.map": "/entry-module-demo/static/css/main.8015997c.css.map",
+    "main.6bb5156d.js.map": "/entry-module-demo/static/js/main.6bb5156d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8015997c.css",
+    "static/js/main.6bb5156d.js"
+  ]
+}
