@@ -13,6 +13,10 @@ const ModuleSimulator = () => {
   const [skillLevelModifierValue, setSkillLevelModifierValue] = useState(15); // Default +15 from docs
   const [preferenceModifierValue, setPreferenceModifierValue] = useState(10); // Default +10 from docs
   
+  // Threshold adjustment states (normalized weight boundaries 0-100)
+  const [expandedThreshold, setExpandedThreshold] = useState(80); // Default 80 from docs
+  const [standardThreshold, setStandardThreshold] = useState(50); // Default 50 from docs
+  
   // UI state for collapsible sections
   const [isModifierSectionExpanded, setIsModifierSectionExpanded] = useState(false);
 
@@ -51,7 +55,7 @@ const ModuleSimulator = () => {
     }
   };
 
-  // Role modifiers - Using the adjusted value from controls instead of hard-coded values
+  // Role modifiers - Using the adjusted value from controls
   const getRoleModifier = (roleType, moduleId) => {
     if (roleType === 'leadership' && moduleId === 'dig-deeper') return roleModifierValue;
     if (roleType === 'individual-contributor' && moduleId === 'browse-by-modality') return roleModifierValue;
@@ -75,7 +79,7 @@ const ModuleSimulator = () => {
     return 0;
   };
 
-  // Module metadata for display
+  // Module desrcriptions for display
   const moduleMetadata = {
     'guided-learning': {
       title: 'Guided Learning',
@@ -104,7 +108,7 @@ const ModuleSimulator = () => {
     }
   };
 
-  // Content examples based on learning goal and preference
+  // Mock content examples for learning goal and preference
   const contentExamples = {
     'guided-learning': {
       'explore': {
@@ -212,9 +216,9 @@ const ModuleSimulator = () => {
     // Determine states
     const states = {};
     modules.forEach(module => {
-      if (normalizedWeights[module] >= 80) {
+      if (normalizedWeights[module] >= expandedThreshold) {
         states[module] = 'expanded';
-      } else if (normalizedWeights[module] >= 50) {
+      } else if (normalizedWeights[module] >= standardThreshold) {
         states[module] = 'standard';
       } else {
         states[module] = 'collapsed';
@@ -253,7 +257,7 @@ const ModuleSimulator = () => {
       }, {})
     );
   }, [learningGoal, role, skillLevel, learningPreferences, 
-     goalModifierMultiplier, roleModifierValue, skillLevelModifierValue, preferenceModifierValue]);
+     goalModifierMultiplier, roleModifierValue, skillLevelModifierValue, preferenceModifierValue, expandedThreshold, standardThreshold]);
 
   // Get content examples for a specific module based on current user inputs
   const getContentExamplesForModule = (module) => {
@@ -503,7 +507,7 @@ const ModuleSimulator = () => {
           
           {isModifierSectionExpanded && (
             <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Base Weight Multiplier: ×{goalModifierMultiplier.toFixed(1)}
@@ -616,7 +620,83 @@ const ModuleSimulator = () => {
                   </div>
                 </div>
               </div>
-            </div>
+              
+           <div className="border-t border-gray-200 pt-4">
+             <h4 className="font-medium mb-3">Module State Thresholds</h4>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div>
+                 <label className="block text-sm font-medium mb-1">
+                   Expanded Threshold: ≥{expandedThreshold}%
+                 </label>
+                 <div className="flex items-center">
+                   <button 
+                     className="bg-gray-200 px-3 py-1 rounded-l"
+                     onClick={() => {
+                       const newValue = Math.max(standardThreshold + 5, expandedThreshold - 5);
+                       setExpandedThreshold(newValue);
+                     }}
+                   >−</button>
+                   <input 
+                     type="range" 
+                     min={standardThreshold + 5} 
+                     max="95" 
+                     step="5"
+                     value={expandedThreshold} 
+                     onChange={(e) => setExpandedThreshold(parseInt(e.target.value))}
+                     className="flex-grow mx-2" 
+                   />
+                   <button 
+                     className="bg-gray-200 px-3 py-1 rounded-r"
+                     onClick={() => setExpandedThreshold(Math.min(95, expandedThreshold + 5))}
+                   >+</button>
+                 </div>
+                 <div className="text-xs text-gray-500 mt-1">
+                   Score threshold for Expanded state (default: 80%)
+                 </div>
+               </div>
+                
+               <div>
+                 <label className="block text-sm font-medium mb-1">
+                   Standard Threshold: ≥{standardThreshold}%
+                 </label>
+                 <div className="flex items-center">
+                   <button 
+                     className="bg-gray-200 px-3 py-1 rounded-l"
+                     onClick={() => setStandardThreshold(Math.max(5, standardThreshold - 5))}
+                   >−</button>
+                   <input 
+                     type="range" 
+                     min="5" 
+                     max={expandedThreshold - 5} 
+                     step="5"
+                     value={standardThreshold} 
+                     onChange={(e) => setStandardThreshold(parseInt(e.target.value))}
+                     className="flex-grow mx-2" 
+                   />
+                   <button 
+                     className="bg-gray-200 px-3 py-1 rounded-r"
+                     onClick={() => {
+                       const newValue = Math.min(expandedThreshold - 5, standardThreshold + 5);
+                       setStandardThreshold(newValue);
+                     }}
+                   >+</button>
+                 </div>
+                 <div className="text-xs text-gray-500 mt-1">
+                   Score threshold for Standard state (default: 50%)
+                 </div>
+               </div>
+             </div>
+              
+             <div className="mt-3 bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+               <p className="mb-1 font-medium">Current State Ranges:</p>
+               <ul className="pl-5 list-disc text-sm">
+                 <li>Expanded: ≥{expandedThreshold}% score</li>
+                 <li>Standard: {standardThreshold}% - {expandedThreshold-1}% score</li>
+                 <li>Collapsed: &lt;{standardThreshold}% score</li>
+               </ul>
+             </div>
+           </div>
+         </div>
           )}
         </div>
         
